@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: stock-tracker
+alpha:
+  vantage:
+    base:
+      url:
+    api:
+      key:
