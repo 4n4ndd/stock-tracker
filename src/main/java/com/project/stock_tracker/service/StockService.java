@@ -2,7 +2,11 @@ package com.project.stock_tracker.service;
 
 import com.project.stock_tracker.client.StockClient;
 import com.project.stock_tracker.dto.*;
+import com.project.stock_tracker.entity.FavoriteStock;
+import com.project.stock_tracker.repository.FavoriteStockRepo;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -15,7 +19,8 @@ import java.util.stream.Collectors;
 public class StockService {
 
     private final StockClient client;
-
+    private final FavoriteStockRepo repo;
+@Cacheable(value = "stocks", key = "#stockSymbol")
     public StockResponse getStock(String stockSymbol) {
         AlphaVantageResponse response = client.getStockQuote(stockSymbol);
 
@@ -68,6 +73,23 @@ public class StockService {
                             Long.parseLong(daily.volume())
                     );
                 })
+                .collect(Collectors.toList());
+    }
+    @Transactional
+    public FavoriteStock addFavourite(String symbol) {
+        if(repo.existsBySymbol(symbol)){
+            throw new RuntimeException("Fav stock already exists : " + symbol);
+        }
+        FavoriteStock favorite = FavoriteStock.builder()
+                .symbol(symbol)
+                .build();
+        return repo.save(favorite);
+    }
+
+    public List<StockResponse> getFavouritesWithPrices() {
+        List<FavoriteStock> favorites = repo.findAll();
+        return favorites.stream()
+                .map(fav->getStock(fav.getSymbol()))
                 .collect(Collectors.toList());
     }
 }

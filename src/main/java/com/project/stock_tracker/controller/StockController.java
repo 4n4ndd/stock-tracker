@@ -1,10 +1,13 @@
 package com.project.stock_tracker.controller;
 
 import com.project.stock_tracker.dto.DailyResponse;
+import com.project.stock_tracker.dto.FavoriteStockRequest;
 import com.project.stock_tracker.dto.StockOverviewResponse;
 import com.project.stock_tracker.dto.StockResponse;
+import com.project.stock_tracker.entity.FavoriteStock;
 import com.project.stock_tracker.service.StockService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,5 +28,14 @@ public class StockController {
     @GetMapping("/getHistory/{symbol}")
     public List<DailyResponse> getHistory(@PathVariable String symbol, @RequestParam(defaultValue = "30") int days){
         return service.getHistory(symbol.toUpperCase(),days);
+    }
+    @PostMapping("/favorites")
+    public ResponseEntity<FavoriteStock> addFavourites(@RequestBody FavoriteStock request){
+        FavoriteStock saved = service.addFavourite(request.getSymbol());
+        return ResponseEntity.ok(saved);
+    }
+    @GetMapping("/favorites")
+    public List<StockResponse> getFavoritesWithPrices(){
+        return service.getFavouritesWithPrices();
     }
 }
